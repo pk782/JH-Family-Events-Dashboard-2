@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Events Dashboard - Ruby & Duncan</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap');
+
+    :root {
+      --cream: #f5f0eb;
+      --warm-white: #faf8f5;
+      --sage: #7a9a7e;
+      --sage-light: #a3bfa6;
+      --sage-dark: #5a7a5e;
+      --amber: #d4956a;
+      --amber-light: #e8c4a8;
+      --amber-soft: #f3e4d8;
+      --slate: #4a5560;
+      --slate-light: #7a8a95;
+      --slate-lighter: #b0bcc4;
+      --red-soft: #c97a7a;
+      --red-bg: #f5e4e4;
+      --blue-soft: #7a9fb5;
+      --blue-bg: #e4eff5;
+      --text-primary: #2c3530;
+      --text-secondary: #6b7c73;
+      --shadow-sm: 0 1px 3px rgba(44,53,48,0.08);
+      --shadow-md: 0 4px 12px rgba(44,53,48,0.1);
+      --shadow-lg: 0 8px 32px rgba(44,53,48,0.12);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.2;
+    }
+    .header h1 span { color: var(--sage); }
+    .header-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 6px;
+      background: rgba(255,255,255,0.6);
+      padding: 5px;
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+    }
+    .tab {
+      padding: 8px 18px;
+      border: none;
+      background: transparent;
+      border-radius: 9px;
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.4); }
+    .tab.active {
+      background: white;
+      color: var(--sage-dark);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Filter Pills */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.8px; margin-right: 4px; }
+    .pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid transparent;
+      background: rgba(255,255,255,0.7);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill:hover { border-color: var(--sage-light); color: var(--text-primary); }
+    .pill.active { background: var(--sage); color: white; border-color: var(--sage); font-weight: 600; }
+    .pill.child-a.active { background: var(--amber); border-color: var(--amber); }
+    .pill.child-b.active { background: var(--blue-soft); border-color: var(--blue-soft); }
+
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(122,154,126,0.1);
+    }
+    .stat-card .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .stat-card .stat-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .stat-icon.green { background: #e8f3e9; color: var(--sage-dark); }
+    .stat-icon.amber { background: var(--amber-soft); color: var(--amber); }
+    .stat-icon.red { background: var(--red-bg); color: var(--red-soft); }
+    .stat-icon.blue { background: var(--blue-bg); color: var(--blue-soft); }
+    .stat-card .stat-num { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--text-primary); }
+    .stat-card .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+    /* Urgency Banner */
+    .urgency-banner {
+      background: linear-gradient(135deg, #fff5f0, #fff0e8);
+      border: 1px solid var(--amber-light);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .urgency-banner .urgency-icon { color: var(--amber); flex-shrink: 0; }
+    .urgency-banner .urgency-text { font-size: 13.5px; font-weight: 500; color: #8a5a30; }
+    .urgency-banner .urgency-text strong { font-weight: 700; }
+
+    /* Section Header */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .add-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: var(--sage);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .add-btn:hover { background: var(--sage-dark); }
+
+    /* Event Cards */
+    .event-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .event-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(0,0,0,0.04);
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: box-shadow 0.2s, transform 0.15s;
+      position: relative;
+    }
+    .event-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    .event-card.urgent { border-left: 3.5px solid var(--red-soft); }
+    .event-card.soon { border-left: 3.5px solid var(--amber); }
+
+    .event-date-block {
+      flex-shrink: 0;
+      width: 52px;
+      text-align: center;
+      background: var(--cream);
+      border-radius: 10px;
+      padding: 8px 4px;
+    }
+    .event-date-block .month { font-size: 10px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .event-date-block .day { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+
+    .event-content { flex: 1; min-width: 0; }
+    .event-title { font-size: 15px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .event-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+    .event-meta-item { font-size: 12.5px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+
+    .event-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .tag {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .tag.child-a { background: var(--amber-soft); color: #9a6a3a; }
+    .tag.child-b { background: var(--blue-bg); color: #4a7a8f; }
+    .tag.adaptive { background: #e8eef5; color: #4a6580; }
+    .tag.deadline { background: var(--red-bg); color: var(--red-soft); }
+
+    .event-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid #e8e4df;
+      background: white;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+    .icon-btn:hover { border-color: var(--sage-light); color: var(--sage-dark); background: #f0f5f1; }
+    .icon-btn.danger:hover { border-color: var(--red-soft); color: var(--red-soft); background: var(--red-bg); }
+
+    /* Signup Status */
+    .signup-status {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 6px;
+    }
+    .signup-status .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .status-dot.open { background: var(--sage); }
+    .status-dot.closing { background: var(--amber); }
+    .status-dot.closed { background: var(--red-soft); }
+    .signup-status span { font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(44,53,48,0.4);
+      backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+    .modal {
+      background: white;
+      border-radius: 18px;
+      padding: 28px;
+      width: 100%; max-width: 480px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+    .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; }
+    .modal-close {
+      width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e0dbd5;
+      background: white; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      color: var(--text-secondary); transition: all 0.15s;
+    }
+    .modal-close:hover { background: var(--red-bg); color: var(--red-soft); border-color: var(--red-soft); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-input {
+      width: 100%; padding: 10px 14px;
+      border: 1.5px solid #e0dbd5; border-radius: 10px;
+      font-family: inherit; font-size: 14px;
+      background: var(--cream); color: var(--text-primary); outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .form-input:focus { border-color: var(--sage); background: white; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .checkbox-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 8px;
+      border: 1.5px solid #e0dbd5;
+      background: white; cursor: pointer;
+      font-family: inherit; font-size: 13px;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+    .checkbox-pill:hover { border-color: var(--sage-light); }
+    .checkbox-pill.checked { border-color: var(--sage); background: #eef4ef; color: var(--sage-dark); font-weight: 600; }
+    .checkbox-pill.checked-amber { border-color: var(--amber); background: var(--amber-soft); color: #8a5a30; font-weight: 600; }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+    .btn-cancel {
+      padding: 9px 18px; border-radius: 9px;
+      border: 1.5px solid #e0dbd5; background: white;
+      font-family: inherit; font-size: 13.5px; font-weight: 500;
+      color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--slate-lighter); }
+    .btn-save {
+      padding: 9px 22px; border-radius: 9px;
+      border: none; background: var(--sage); color: white;
+      font-family: inherit; font-size: 13.5px; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-save:hover { background: var(--sage-dark); }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
+    .empty-state p { font-size: 13.5px; }
+
+    @media (max-width: 600px) {
+      .app-shell { padding: 16px 12px 50px; }
+      .header { margin-bottom: 20px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr; }
+      .event-card { flex-wrap: wrap; }
+      .event-actions { position: absolute; top: 12px; right: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    // Simple icon components (replacing lucide-react)
+    const Mountain = () => <span style={{fontSize:22}}>⛰️</span>;
+    const Calendar = () => <span>📅</span>;
+    const Clock = () => <span>⏰</span>;
+    const AlertTriangle = () => <span>⚠️</span>;
+    const Plus = () => <span>➕</span>;
+    const X = () => <span>✖️</span>;
+    const Trash2 = () => <span>🗑️</span>;
+
+    const CHILDREN = [
+      { id: "all", label: "All Kids" },
+      { id: "ruby", label: "Ruby (4)" },
+      { id: "duncan", label: "Duncan (3)" },
+    ];
+
+    const CATEGORIES = ["Dance", "Soccer", "Ski Lessons", "Swim Lessons", "Holiday Care", "Adaptive", "Concert", "Performance", "Other"];
+
+    const INITIAL_EVENTS = [
+      {
+        id: 1, title: "Spring Dance Recital Signup", date: "2026-02-14", time: "10:00 AM",
+        location: "Jackson Rec Center", category: "Dance", children: ["ruby"],
+        signupDeadline: "2026-02-10", signupStatus: "closing",
+        notes: "Ruby's teacher wants kids registered by the 10th. Costume fee $35.",
+        adaptive: false,
+        url: "https://www.tetonwyo.org/facilities/recreation-center/"
+      },
+      {
+        id: 2, title: "Adaptive Swimming Program", date: "2026-02-18", time: "9:00 AM",
+        location: "Teton Village Aquatic Center", category: "Adaptive", children: ["duncan"],
+        signupDeadline: "2026-02-12", signupStatus: "closing",
+        notes: "One-on-one instructor available. Call to confirm adaptive accommodations.",
+        adaptive: true,
+        url: "https://www.tetonwyo.org/facilities/recreation-center/"
+      },
+      {
+        id: 3, title: "Youth Soccer Tryouts", date: "2026-02-22", time: "2:00 PM",
+        location: "Frontier Fields", category: "Soccer", children: ["ruby"],
+        signupDeadline: "2026-02-19", signupStatus: "open",
+        notes: "Bring cleats and water bottle. Age 4-5 division.",
+        adaptive: false,
+        url: "https://www.tetonwyo.org/departments/parks-recreation/"
+      },
+      {
+        id: 4, title: "🎿 2026-27 Season Ski Pass EARLY BIRD", date: "2026-03-15", time: "Online",
+        location: "Jackson Hole Mountain Resort", category: "Ski Lessons", children: ["ruby", "duncan"],
+        signupDeadline: "2026-03-15", signupStatus: "open",
+        notes: "PRIORITY: Early bird pricing ends March 15. Price increases in April and August. Get season passes now for best discount!",
+        adaptive: false,
+        url: "https://www.jacksonhole.com/plan-your-trip/tickets-passes/season-passes"
+      },
+      {
+        id: 5, title: "Spring Break Camp – Week 1", date: "2026-03-23", time: "8:00 AM",
+        location: "Jackson Rec Center", category: "Holiday Care", children: ["ruby", "duncan"],
+        signupDeadline: "2026-03-16", signupStatus: "open",
+        notes: "Full day camp during spring break. Arts, outdoor activities, lunch included.",
+        adaptive: true,
+        url: "https://www.tetonwyo.org/facilities/recreation-center/"
+      },
+    ];
+
+    const formatDate = (dateStr) => {
+      const d = new Date(dateStr + "T00:00:00");
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", weekday: "short" });
+    };
+
+    const getMonth = (dateStr) => new Date(dateStr + "T00:00:00").toLocaleString("en-US", { month: "short" }).toUpperCase();
+    const getDay = (dateStr) => new Date(dateStr + "T00:00:00").getDate();
+
+    const daysUntil = (dateStr) => {
+      const now = new Date("2026-02-01");
+      const target = new Date(dateStr + "T00:00:00");
+      return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+    };
+
+    const AddEventModal = ({ onSave, onClose }) => {
+      const [form, setForm] = useState({
+        title: "", date: "", time: "", location: "", category: "Dance",
+        children: [], signupDeadline: "", notes: "", adaptive: false, url: ""
+      });
+
+      const toggleChild = (id) => {
+        setForm(f => ({
+          ...f,
+          children: f.children.includes(id) ? f.children.filter(c => c !== id) : [...f.children, id]
+        }));
+      };
+
+      return (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Add New Event</h3>
+              <button className="modal-close" onClick={onClose}><X /></button>
+            </div>
+            <div className="form-group">
+              <label>Event Name</label>
+              <input className="form-input" placeholder="e.g. Spring Dance Recital" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Date</label>
+                <input className="form-input" type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} />
+              </div>
+              <div className="form-group">
+                <label>Time</label>
+                <input className="form-input" type="time" value={form.time} onChange={e => setForm({...form, time: e.target.value})} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Location</label>
+              <input className="form-input" placeholder="e.g. Jackson Rec Center" value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Category</label>
+                <select className="form-input" value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Signup Deadline</label>
+                <input className="form-input" type="date" value={form.signupDeadline} onChange={e => setForm({...form, signupDeadline: e.target.value})} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Signup / Event Link (Optional)</label>
+              <input className="form-input" placeholder="https://..." value={form.url} onChange={e => setForm({...form, url: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label>Which kid(s)?</label>
+              <div className="checkbox-group">
+                <button className={`checkbox-pill ${form.children.includes("ruby") ? "checked-amber" : ""}`} onClick={() => toggleChild("ruby")}>Ruby (4)</button>
+                <button className={`checkbox-pill ${form.children.includes("duncan") ? "checked" : ""}`} onClick={() => toggleChild("duncan")}>Duncan (3)</button>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Notes</label>
+              <input className="form-input" placeholder="Costume fees, what to bring, etc." value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
+            </div>
+            <div className="form-group">
+              <label style={{display:"flex",alignItems:"center",gap:8}}>
+                <input type="checkbox" checked={form.adaptive} onChange={e => setForm({...form, adaptive: e.target.checked})} style={{width:16,height:16,accentColor:"var(--sage)"}} />
+                This event has adaptive/inclusive accommodations
+              </label>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={onClose}>Cancel</button>
+              <button className="btn-save" onClick={() => { if (form.title && form.date) onSave(form); }}>Save Event</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const EventCard = ({ event, onDelete }) => {
+      const deadline = event.signupDeadline ? daysUntil(event.signupDeadline) : null;
+      const isUrgent = deadline !== null && deadline <= 3;
+      const isSoon = deadline !== null && deadline > 3 && deadline <= 7;
+
+      return (
+        <div className={`event-card ${isUrgent ? "urgent" : isSoon ? "soon" : ""}`}>
+          <div className="event-date-block">
+            <div className="month">{getMonth(event.date)}</div>
+            <div className="day">{getDay(event.date)}</div>
+          </div>
+          <div className="event-content">
+            <div className="event-title">{event.title}</div>
+            <div className="event-meta">
+              <span className="event-meta-item"><Clock /> {event.time}</span>
+              <span className="event-meta-item"><Mountain /> {event.location}</span>
+            </div>
+            <div className="event-tags">
+              {event.children.includes("ruby") && <span className="tag child-a">Ruby</span>}
+              {event.children.includes("duncan") && <span className="tag child-b">Duncan</span>}
+              {event.adaptive && <span className="tag adaptive">Adaptive</span>}
+              {isUrgent && <span className="tag deadline">⚡ Signup closes in {deadline}d</span>}
+            </div>
+            <div className="signup-status">
+              <span className={`status-dot ${event.signupStatus}`}></span>
+              <span>Signup {event.signupStatus === "closing" ? "closing soon" : event.signupStatus}{event.signupDeadline ? ` – Deadline: ${formatDate(event.signupDeadline)}` : ""}</span>
+            </div>
+            {event.notes && <div style={{marginTop:8, fontSize:12.5, color:"var(--text-secondary)", fontStyle:"italic"}}>{event.notes}</div>}
+            {event.url && (
+              <a href={event.url} target="_blank" rel="noopener noreferrer" style={{
+                display:"inline-flex", alignItems:"center", gap:4, marginTop:8,
+                fontSize:12.5, fontWeight:600, color:"var(--sage-dark)",
+                textDecoration:"none", transition:"color 0.2s"
+              }}>
+                📍 Signup / More Info →
+              </a>
+            )}
+          </div>
+          <div className="event-actions">
+            <button className="icon-btn danger" onClick={() => onDelete(event.id)}><Trash2 /></button>
+          </div>
+        </div>
+      );
+    };
+
+    function App() {
+      const [events, setEvents] = useState(INITIAL_EVENTS);
+      const [activeTab, setActiveTab] = useState("dashboard");
+      const [childFilter, setChildFilter] = useState("all");
+      const [showAddModal, setShowAddModal] = useState(false);
+      const [nextId, setNextId] = useState(100);
+
+      const filteredEvents = events
+        .filter(e => childFilter === "all" || e.children.includes(childFilter))
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+      const urgentDeadlines = events.filter(e => e.signupDeadline && daysUntil(e.signupDeadline) <= 3);
+      const upcomingCount = events.filter(e => { const d = daysUntil(e.date); return d >= 0 && d <= 14; }).length;
+
+      const addEvent = (form) => {
+        const newEvent = {
+          id: nextId, title: form.title, date: form.date,
+          time: form.time || "TBD", location: form.location || "TBD",
+          category: form.category, children: form.children.length ? form.children : ["ruby"],
+          signupDeadline: form.signupDeadline || null,
+          signupStatus: form.signupDeadline ? (daysUntil(form.signupDeadline) <= 3 ? "closing" : "open") : "open",
+          notes: form.notes || "", adaptive: form.adaptive, url: form.url || ""
+        };
+        setEvents(prev => [...prev, newEvent]);
+        setNextId(n => n + 1);
+        setShowAddModal(false);
+      };
+
+      const deleteEvent = (id) => setEvents(prev => prev.filter(e => e.id !== id));
+
+      return (
+        <>
+          {/* Illustrated Banner - Full Width */}
+          <div style={{
+            background: "linear-gradient(135deg, #e8f3e9 0%, #f0f7f1 50%, #e4eff5 100%)",
+            padding: "32px 20px",
+            position: "relative",
+            overflow: "hidden",
+            boxShadow: "0 2px 8px rgba(44,53,48,0.08)",
+            borderBottom: "1px solid rgba(122,154,126,0.15)"
+          }}>
+            <svg viewBox="0 0 800 160" style={{width: "100%", maxWidth: "1100px", height: "auto", display: "block", margin: "0 auto"}}>
+              <rect x="0" y="0" width="800" height="160" fill="url(#skyGradient)" />
+              <defs>
+                <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#e4eff5" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#e8f3e9" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+              <path d="M 0 100 Q 100 60, 200 80 T 400 70 T 600 85 T 800 75 L 800 160 L 0 160 Z" fill="#b8c9bc" opacity="0.4" />
+              <path d="M 0 110 Q 150 70, 300 90 T 500 80 T 700 95 T 800 85 L 800 160 L 0 160 Z" fill="#a3bfa6" opacity="0.5" />
+              <ellipse cx="680" cy="125" rx="25" ry="35" fill="#7a9a7e" opacity="0.6" />
+              <rect x="675" y="125" width="10" height="35" fill="#8a6a4a" opacity="0.5" />
+              <circle cx="700" cy="30" r="22" fill="#f4d58d" opacity="0.8" />
+              <circle cx="700" cy="30" r="18" fill="#f9e6b8" opacity="0.9" />
+              
+              {/* Ruby skiing */}
+              <g transform="translate(180, 85)">
+                <ellipse cx="0" cy="15" rx="18" ry="22" fill="#d4956a" />
+                <circle cx="0" cy="-5" r="14" fill="#f5c9a5" />
+                <path d="M -8 -10 Q -12 -8, -10 0 Q -8 -2, -5 -12 Q 0 -15, 5 -12 Q 8 -2, 10 0 Q 12 -8, 8 -10" fill="#8a5a3a" />
+                <ellipse cx="0" cy="-8" rx="13" ry="10" fill="#e07a7a" opacity="0.9" />
+                <line x1="-12" y1="8" x2="-22" y2="-5" stroke="#d4956a" strokeWidth="5" strokeLinecap="round" />
+                <line x1="12" y1="8" x2="22" y2="-5" stroke="#d4956a" strokeWidth="5" strokeLinecap="round" />
+                <line x1="-6" y1="32" x2="-10" y2="50" stroke="#d4956a" strokeWidth="6" strokeLinecap="round" />
+                <line x1="6" y1="32" x2="10" y2="50" stroke="#d4956a" strokeWidth="6" strokeLinecap="round" />
+                <rect x="-14" y="48" width="35" height="4" rx="2" fill="#e8c4a8" opacity="0.9" />
+              </g>
+              
+              {/* Duncan dancing */}
+              <g transform="translate(380, 100)">
+                <ellipse cx="0" cy="12" rx="16" ry="20" fill="#7a9fb5" />
+                <circle cx="0" cy="-8" r="13" fill="#f5c9a5" />
+                <path d="M -9 -12 Q -6 -18, 0 -16 Q 6 -18, 9 -12 Q 6 -10, 0 -14 Q -6 -10, -9 -12" fill="#5a4a3a" />
+                <line x1="-14" y1="5" x2="-24" y2="8" stroke="#7a9fb5" strokeWidth="5" strokeLinecap="round" />
+                <line x1="14" y1="5" x2="24" y2="0" stroke="#7a9fb5" strokeWidth="5" strokeLinecap="round" />
+                <text x="30" y="-5" fontSize="18" fill="#d4956a" opacity="0.7">♪</text>
+              </g>
+              
+              {/* Swimming */}
+              <g transform="translate(550, 115)">
+                <ellipse cx="0" cy="25" rx="35" ry="8" fill="#7a9fb5" opacity="0.3" />
+                <ellipse cx="0" cy="8" rx="14" ry="18" fill="#f3e4d8" />
+                <circle cx="0" cy="-10" r="12" fill="#f5c9a5" />
+                <line x1="-12" y1="2" x2="-20" y2="-8" stroke="#f3e4d8" strokeWidth="4" strokeLinecap="round" />
+                <line x1="12" y1="2" x2="20" y2="-8" stroke="#f3e4d8" strokeWidth="4" strokeLinecap="round" />
+              </g>
+              
+              {/* Soccer ball */}
+              <g transform="translate(100, 130)">
+                <circle cx="0" cy="0" r="12" fill="white" stroke="#2c3530" strokeWidth="1.5" />
+              </g>
+              
+              <ellipse cx="120" cy="25" rx="30" ry="12" fill="white" opacity="0.6" />
+              <ellipse cx="450" cy="35" rx="35" ry="14" fill="white" opacity="0.5" />
+            </svg>
+          </div>
+
+          <div className="app-shell">
+            {/* Header */}
+            <div className="header">
+              <div className="header-left">
+                <div className="header-icon"><Mountain /></div>
+                <div>
+                  <h1>Family <span>Events</span></h1>
+                  <div className="header-sub">Jackson, Wyoming · Ruby & Duncan</div>
+                </div>
+              </div>
+              <div className="tabs">
+                <button className={`tab ${activeTab === "dashboard" ? "active" : ""}`} onClick={() => setActiveTab("dashboard")}>Dashboard</button>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="stats-row">
+              <div className="stat-card">
+                <div className="stat-top">
+                  <div className="stat-num">{events.length}</div>
+                  <div className="stat-icon green"><Calendar /></div>
+                </div>
+                <div className="stat-label">Total Events</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-top">
+                  <div className="stat-num">{upcomingCount}</div>
+                  <div className="stat-icon amber"><Clock /></div>
+                </div>
+                <div className="stat-label">This 2 Weeks</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-top">
+                  <div className="stat-num">{urgentDeadlines.length}</div>
+                  <div className="stat-icon red"><AlertTriangle /></div>
+                </div>
+                <div className="stat-label">Deadlines Soon</div>
+              </div>
+            </div>
+
+            {/* Urgency Banner */}
+            {urgentDeadlines.length > 0 && (
+              <div className="urgency-banner">
+                <AlertTriangle size={20} className="urgency-icon" />
+                <div className="urgency-text">
+                  <strong>{urgentDeadlines.length} signup deadline{urgentDeadlines.length > 1 ? "s" : ""} coming up soon!</strong> Don't miss: {urgentDeadlines.map(e => e.title).join(", ")}
+                </div>
+              </div>
+            )}
+
+            {/* Filter */}
+            <div className="filter-bar">
+              <span className="filter-label">Filter:</span>
+              {CHILDREN.map(c => (
+                <button key={c.id} className={`pill ${childFilter === c.id ? "active" : ""} ${c.id === "ruby" ? "child-a" : c.id === "duncan" ? "child-b" : ""}`} onClick={() => setChildFilter(c.id)}>{c.label}</button>
+              ))}
+            </div>
+
+            <div className="section-header">
+              <h2>Upcoming Events</h2>
+              <button className="add-btn" onClick={() => setShowAddModal(true)}><Plus /> Add Event</button>
+            </div>
+
+            <div className="event-list">
+              {filteredEvents.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-icon">📋</div>
+                  <p>No events found for this filter. Try adding one!</p>
+                </div>
+              ) : (
+                filteredEvents.map(e => <EventCard key={e.id} event={e} onDelete={deleteEvent} />)
+              )}
+            </div>
+
+            {showAddModal && <AddEventModal onSave={addEvent} onClose={() => setShowAddModal(false)} />}
+          </div>
+        </>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
